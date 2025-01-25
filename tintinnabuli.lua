@@ -15,25 +15,29 @@
 
 -- globals
 -- could use musicutil for this
-m_scale = { 0, 2, 3, 5, 7, 8, 10 } -- example C minor
-t_triad = { 0, 3, 5 }              -- C minor triad
-t_relationship = -1                -- next lowest note in the triad
+M_SCALE = { 0, 2, 3, 5, 7, 8, 10 } -- example C minor
+T_TRIAD = { 0, 3, 5 }              -- C minor triad
+
+-- currently not using this and instead assuming this
+T_RELATIONSHIP = -1 -- next lowest note in the triad
 
 function init()
     MVoice = output[1]
     TVoice = output[2]
+    TrigOut = output[3]
     CVIn = input[1]
+
+    TrigOut.action = pulse()
 
     -- does this limit it to one octave?
     CVIn.mode('scale', m_scale)
-
     CVIn.scale = play_notes
 end
 
--- idk if this is how it works the docs are ass tbh
 function play_notes(note)
     MVoice.volts = volts_from_note(note)
-    TVoice.volts = volts_from_note(t_from_m(note))
+    TVoice.volts = volts_from_note(t_from_m(note, T_TRIAD))
+    TrigOut()
 end
 
 -- this should be a library probably is
@@ -41,6 +45,33 @@ function volts_from_note(note)
     return note / 12
 end
 
-function t_from_m(note)
-    -- lost my train of thought
+function t_from_m(note, triad)
+    -- find next lowest
+    while true do -- lol???
+        for _, m_note in ipairs(triad) do
+            -- iterate through triad descendingly
+            for i = 1, #T_TRIAD do
+                local t_note = T_TRIAD[#T_TRIAD + 1 - i]
+                if t_note < m_note then
+                    return t_note
+                end
+            end
+        end
+
+        local new_triad = imap(triad, function(note)
+            -- an octave lower
+            return note - 12
+        end)
+
+        return t_from_m(note, new_triad)
+    end
+end
+
+-- should save this for later use
+function imap(table, func)
+    local result = {}
+    for _, value in ipairs(table) do
+        table.insert(func(value))
+    end
+    return result
 end

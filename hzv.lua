@@ -5,10 +5,8 @@
 -- 0V is silence
 -- 10V is the maximum
 
--- low C?
-BASE_NOTE = 55.0
-
-TEST_SCALE = { 7, 8, 10, 12 }
+-- 0 is "middle"
+TEST_SCALE = { 7, 9, 10, 12, 14, 15, 17, 19 }
 
 function init()
     TrigOut = output[3]
@@ -18,24 +16,7 @@ function init()
 end
 
 function note_to_ms_20(note)
-    return hz_to_v(note_to_hz(note))
-end
-
-function hz_to_v(freq)
-    v = math.log((freq / BASE_NOTE), 2)
-    print("V: " .. v)
-    return v
-end
-
-function note_to_hz(note)
-    exp = (note / 12)
-    print("exp: " .. exp)
-
-    coeff = 2 ^ (exp)
-    print("coeff: " .. coeff)
-    hz = BASE_NOTE * coeff
-    print("Hz: " .. hz)
-    return hz
+    return 2 ^ (note / 12)
 end
 
 function run_test()
@@ -46,9 +27,4 @@ function run_test()
             clock.sleep(1)
         end
     end)
-end
-
-function playhz(hz)
-    Voice1Out.volts = hz_to_v(hz)
-    TrigOut()
 end
