@@ -4,45 +4,83 @@
 -- coefficients that determine which step to take are influenced by what
 -- decisions have been made previously like
 
-LOG_LEVEL = "not debug"
+LOG_LEVEL = "debug"
+INHERIT_INTERVALS_FROM_NEIGHBOR = true
+NEIGHBOR_DISTANCE = -4
+LOW_NOTE = -24
+HIGH_NOTE = 36
 
-mutation_intervals_by_note = {
-    [1] = {
-        {
-            interval = 3,
-            tally = 10, -- initializing the tally to a big number allows the coefficient to change more gradually
-            coeff = 0,  -- this doesn't need a default because it gets calculated first
-        },
-        {
-            interval = 4,
-            tally = 10,
-            coeff = 0,
-        },
+DEFAULT_MUTATION_INTERVALS = {
+    {
+        interval = 6,
+        tally = 5, -- initializing the tally to a big number allows the coefficient to change more gradually
+        coeff = 0, -- this doesn't need a default because it gets calculated first
     },
-    [2] = {
-        {
-            interval = 3,
-            tally = 10,
-            coeff = 0,
-        },
-        {
-            interval = 4,
-            tally = 10,
-            coeff = 0,
-        },
-    }
-
+    {
+        interval = 4,
+        tally = 5,
+        coeff = 0,
+    },
+    {
+        interval = -6,
+        tally = 5,
+        coeff = 0,
+    },
+    {
+        interval = -4,
+        tally = 5,
+        coeff = 0,
+    },
+    {
+        interval = -10,
+        tally = 2,
+        coeff = 0,
+    },
+    {
+        interval = 10,
+        tally = 2,
+        coeff = 0,
+    },
 }
+
+function init()
+    mutation_intervals_by_note = {}
+    next_note = 2 -- arbitrary
+
+    gate_in = input[1]
+    cv_out = output[1]
+    gate_out = output[2]
+
+    gate_in.mode('change')
+    gate_in.change = play_next_note
+
+    gate_out.action = pulse()
+end
+
+function play_next_note()
+    cv_out.volts = volts_from_note(next_note)
+    gate_out()
+    next_note = mutate_note(next_note)
+end
 
 function mutate_note(note)
     refresh_interval_coefficients(note)
     local choice = math.random()
     local interval = choose_interval(note, choice)
 
-    return note + interval
+    new_note = note + interval
+    if new_note > HIGH_NOTE or new_note < LOW_NOTE then
+        new_note = mutate_note(new_note)
+    end
+
+    return new_note
 end
 
 function refresh_interval_coefficients(note)
+    if mutation_intervals_by_note[note] == nil then
+        initialize_mutation_intervals(note)
+    end
+
     -- mutation_intervals_by_note.note would be crazy
     local interval_details = mutation_intervals_by_note[note]
 
@@ -76,17 +114,26 @@ function choose_interval(note, choice)
     end
 end
 
+function initialize_mutation_intervals(note)
+    debug_message("initializing mutation intervals for note " .. note)
+    initial_mutation_intervals = DEFAULT_MUTATION_INTERVALS
+
+    if INHERIT_INTERVALS_FROM_NEIGHBOR then
+        neighbor = note + NEIGHBOR_DISTANCE
+        if mutation_intervals_by_note[neighbor] ~= nil then
+            initial_ = mutation_intervals_by_note[neighbor]
+        end
+    end
+
+    mutation_intervals_by_note[note] = initial_mutation_intervals
+end
+
 function debug_message(m)
     if LOG_LEVEL == "debug" then
         print(m)
     end
 end
 
-local i = 100
-while i > 0 do
-    print(mutate_note(1))
-    i = i - 1
+function volts_from_note(note)
+    return note / 12
 end
-
--- tyyype shi
--- worked on the first try no debug am I the goat

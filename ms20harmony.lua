@@ -35,7 +35,6 @@ end
 
 function play_note(note)
     note = note.note -- nah that's fucked
-    print("yerr")
     Voice1Out.volts = note_to_ms_20(note)
 
     t_note = t_from_m(note, T_TRIAD)

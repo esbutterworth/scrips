@@ -24,12 +24,12 @@ function init()
     step = 0
 end
 
-chord_steps = 
+chord_steps =
 {
-    {4, 3, 3}, -- dominant 7
-    {4, 2, 3}, -- minor 7 I think
-    {4, 3}, -- major
-    {3 ,3}, -- minor
+    { 4,  3, 3 }, -- dominant 7
+    { 4,  2, 3 }, -- minor 7 I think
+    { 4,  3 }, -- major
+    { 3,  3 }, -- minor
 }
 
 input[1].change = function(state)
@@ -38,7 +38,7 @@ input[1].change = function(state)
     if note == 0 then
         note_v = 0
     else
-        note_v  = note / 12
+        note_v = note / 12
     end
     output[1].volts = note_v
 
@@ -49,19 +49,19 @@ end
 function eval_next_step()
     chord = chord_steps[chord_type]
     chord_pos = chord_pos + 1
-    print('position '..chord_pos..' of chord')
+    print('position ' .. chord_pos .. ' of chord')
     if chord_pos > #chord then
         if chord_pos > (#chord * octave_range) then
             next_musical_chord()
             chord_pos = 1
         else
             local clamped_chord_pos = (chord_pos % #chord)
-            next_step = (octave_range - chord[clamped_chord_pos]) + octave_range        
+            next_step = (octave_range - chord[clamped_chord_pos]) + octave_range
         end
     else
         next_step = chord[chord_pos]
     end
-    print('step '..step)
+    print('step ' .. step)
     step = next_step
 end
 
@@ -85,7 +85,7 @@ function should_change_chord()
 end
 
 function next_musical_chord()
-    transition = math.random(0,1)
+    transition = math.random(0, 1)
     if base_note == 0 then
         if transition == 0 then
             base_note = 3
@@ -108,8 +108,8 @@ function next_musical_chord()
         base_note = 0
     end
 
-    chord_type = math.random(1,#chord_steps)
-    print('new chord: '..base_note..' of type '..chord_type)
+    chord_type = math.random(1, #chord_steps)
+    print('new chord: ' .. base_note .. ' of type ' .. chord_type)
     chord_pos = 1
     note = base_note
 end
